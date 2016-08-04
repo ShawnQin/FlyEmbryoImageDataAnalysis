@@ -4,40 +4,37 @@
 %       This program read the data of loading rates under different temperature
 %       and comparing temperature dependent.
 %       We specify the A-P position, which is 0.025 of the whole embryos in length
-%LAST REVISED: July 23,2016
+%LAST REVISED: August 3,2016
 %**********************************************************
 function compLoadingRate(varargin)
 
 close all
+
+
 %primary folder of the data
 Folder = '/Users/shan/Documents/MATLAB/LivemRNAFISH/Data';
 
 if ~isempty(varargin)
-     %selection type of data set
-    if(strcmp(varargin{1},'select'))
-%         i0 = 1;
-%         while getkey ~= 13  %this allow us to select muliple folders,13 means "ENTER" button
-%             FolderTemp{i0} = uigetdir(Folder,'Choose folder with files to analyze,pression ENTER when you finish!');
-%             LastFolderPosi= max(find(FolderTemp{i0}==filesep));
-%             FolderNames{i0} = FolderTemp{i0}(LastFolderPosi+1:end);
-% %             [pathstr,name,ext] = fileparts(FolderTemp)
-%             i0 = i0 +1;
-%         end
+    %selection type of data set, by default  it will load all the subfolder in chosen
+    %folder, use 'mid' to open only defined folders
+    if(strcmp(varargin{1},'mid'))
 
-%   this only consider the middle part of the embryo
+%   this only consider the middle part of the embryo, we are trying to see the
+%   expression boundary of Hb. Need to added the folder name each time you have new
+%   data sets. This is a compromised way to do the job.
     FolderNames = {'2016-07-23-MCP-5-P2P','2016-07-24-MCP-5-P2P','2016-07-25-MCP-5-P2P','2016-07-26-MCP-5-P2P',...
         '2016-07-26-MCP-5-P2P','2016-07-27-MCP-5-P2P','2016-07-28-MCP-5-P2P'};
     FolderTemp = [Folder,filesep,'DynamicsResults'];
     end
 else
+    
 %load the data for analysis
 FolderTemp = uigetdir(Folder,'Choose folder with files to analyze');
 AllFolder = dir(FolderTemp);
-FolderNames = AllFolder.name;
-
-% for j0 = 1:length(AllFolder) 
-%     FolderNames{j0} = [FolderTemp,filesep,AllFolder(j0).name];
-% end 
+% FolderNames = AllFolder.name;
+for j0 = 1:length(AllFolder) 
+    FolderNames{j0} = AllFolder(j0).name;
+end 
 end
 
 %information file of each data set
