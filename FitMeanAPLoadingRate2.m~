@@ -510,11 +510,10 @@ while (cc~=13)
 %             FilteredFramesTemp=FrameWindow(FrameFilter);
             FilterNotPrent = find(~ismember(FilteredFramesTemp,FitResults(i,CurrentNC-11).FitFrameRange));
             LargestSmallerInx = max(find(FilteredFramesTemp(FilterNotPrent) < FitResults(i,CurrentNC-11).FitFrameRange(1)));
-%             FitResults(i,CurrentNC-11).FitFrameRange(end+1)= FilteredFramesTemp(FilterNotPrent(LargestSmallerInx));
+            FitResults(i,CurrentNC-11).FitFrameRange(end+1)= FilteredFramesTemp(FilterNotPrent(SmallestLargerInx));
             FitResults(i,CurrentNC-11).FitFrameRange=...
-                [FilteredFramesTemp(FilterNotPrent(LargestSmallerInx)),FitResults(i,CurrentNC-11).FitFrameRange];
-%                 [FilteredFramesTemp(max(find(~ismember(FilteredFramesTemp,FitResults(i,CurrentNC-11).FitFrameRange)))),...
-%                 FitResults(i,CurrentNC-11).FitFrameRange];
+                [FilteredFramesTemp(max(find(~ismember(FilteredFramesTemp,FitResults(i,CurrentNC-11).FitFrameRange)))),...
+                FitResults(i,CurrentNC-11).FitFrameRange];
         end
     %Reset frame fit range
      elseif (ct~=0)&(cc=='r')   

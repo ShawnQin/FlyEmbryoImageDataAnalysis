@@ -67,7 +67,6 @@ compareOnTime = cell(2,1); %estimated ON time during cycle 12 and 13
 compareOffRate = cell(2,1);   %no off rate of nuclei cycle 14
 compareFitTotalmRNA = cell(2,1);  %the total mRNA estimated are based on the fitted parameters
 
-
 TemperatureSet = [23,17,27,38,30,30,17,23,38];  %different number of temperature
 RealTempEstim = 10.6556 + 0.5651*TemperatureSet;
 diffTemperature = length(TemperatureSet);   %number of different temperatures tried
@@ -183,10 +182,18 @@ MeanCompareTotalmRNA = cell(3,1);
 StdCompareTotalmRNA = cell(3,1);
 MeanCompareElongationRate = cell(3,1);
 StdCompareElongationRate = cell(3,1);
+
+MeanCompareOffRate = cell(2,1); %Off rate of nc 12 and 13
+StdCompareOffRate = cell(2,1);
 MeanCompareFitTotalmRNA = cell(2,1);  %fited total mRNA produced during nc 12 and 13
 StdCompareFitTotalmRNA = cell(2,1);
 MeanCompareOnTime = cell(2,1);   %fitted ON time during nc 12 and 13
 StdCompareOnTime = cell(2,1); 
+
+SummaryLoadingRate = cell(3,1);
+SummaryElongationRate = cell(3,1);
+SummaryStartTime = cell(3,1);
+SummaryOnTime = cell(3,1);
 
 for i0 = 1:length(UniqueTemperature);
     SameTempInx = find(Temperature==UniqueTemperature(i0));
@@ -194,15 +201,21 @@ for i0 = 1:length(UniqueTemperature);
 %         nanmean(compareLoadingRate{j0}(:,SameTempInx),2)
         MeanCompareLoadingRate{j0}(:,i0) = nanmean(compareLoadingRate{j0}(:,SameTempInx),2);
         StdCompareLoadingRate{j0}(:,i0) = nanstd(compareLoadingRate{j0}(:,SameTempInx),0,2);
+        SummaryLoadingRate{j0}(i0,1) = nanmean(reshape(compareLoadingRate{j0}(:,SameTempInx),1,[]));
+        SummaryLoadingRate{j0}(i0,2) = nanstd(reshape(compareLoadingRate{j0}(:,SameTempInx),1,[]));
         
         MeanCompareStartTime{j0}(:,i0) = nanmean(compareStartTime{j0}(:,SameTempInx),2);
         StdCompareStartTime{j0}(:,i0) = nanstd(compareStartTime{j0}(:,SameTempInx),0,2);
-
+        SummaryStartTime{j0}(i0,1) = nanmean(reshape(compareStartTime{j0}(:,SameTempInx),1,[]));
+        SummaryStartTime{j0}(i0,2) = nanstd(reshape(compareStartTime{j0}(:,SameTempInx),1,[]));
+       
         MeanCompareTotalmRNA{j0}(:,i0) = nanmean(compareTotalmRNA{j0}(:,SameTempInx),2);
         StdCompareTotalmRNA{j0}(:,i0) = nanstd(compareTotalmRNA{j0}(:,SameTempInx),0,2);
         
         MeanCompareElongationRate{j0}(:,i0) = nanmean(compareElongationRate{j0}(:,SameTempInx),2);
         StdCompareElongationRate{j0}(:,i0) = nanstd(compareElongationRate{j0}(:,SameTempInx),0,2);
+        SummaryElongationRate{j0}(i0,1) = nanmean(reshape(compareElongationRate{j0}(:,SameTempInx),1,[]));
+        SummaryElongationRate{j0}(i0,2) = nanstd(reshape(compareElongationRate{j0}(:,SameTempInx),1,[]));
 %     MeanCompareLoadingRate{j0}(:,i0) = compareLoadingRate{j0}(:,SameTempInx);
 %     MeanCompareTotalmRNA{j0}(:,i0)  = compareTotalmRNA{j0}(:,compareTotalmRNA);
     end
@@ -213,6 +226,11 @@ for i0 = 1:length(UniqueTemperature);
         
         MeanCompareOnTime{k0}(:,i0) = nanmean(compareOnTime{k0}(:,SameTempInx),2);
         StdCompareOnTime{k0}(:,i0) = nanstd(compareOnTime{k0}(:,SameTempInx),0,2);
+        SummaryOnTime{k0}(i0,1) = nanmean(reshape(compareOnTime{k0}(:,SameTempInx),1,[]));
+        SummaryOnTime{k0}(i0,2) = nanstd(reshape(compareOnTime{k0}(:,SameTempInx),1,[]));
+        
+        MeanCompareOffRate{k0}(:,i0) = nanmean(compareOffRate{k0}(:,SameTempInx),2);
+        StdCompareOffRate{k0}(:,i0) = nanstd(compareOffRate{k0}(:,SameTempInx),0,2);
     end
 
 end
@@ -255,8 +273,6 @@ ylabel('Relative loading rate of RNAP','FontSize',24,'FontWeight','Bold')
 % legend(TempLegend)
 legend(UniqueTempLegend)
 
-
-
 %cycle 14
 % subplot(2,2,3)
 figure(3)
@@ -277,11 +293,10 @@ ylabel('Relative loading rate of RNAP','FontSize',24,'FontWeight','Bold')
 legend(UniqueTempLegend)
 
 
+
+
 %plot the temperature dependent rate at a certain AP position
 APAxisSelect = input('Select a position(0~1):');
-% P_inx = round(POSITION/0.025);
-
-% APAxisSelect = 0.35;
 whichBin = round(APAxisSelect/0.025);
 [TempOrder,Inx] = sort(RealTempEstim);
 
@@ -303,6 +318,9 @@ xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
 
+
+
+
 %plot the total mRNA along AP Axis during different nc
 figure(6)
 subplot(2,2,1)
@@ -317,6 +335,7 @@ xlabel('AP Axis','FontSize',20,'FontWeight','Bold')
 ylabel('Area under the curve','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
 set(gca,'xlim',[0.1,0.6])
+legend(UniqueTempLegend)
 
 %nc 13
 subplot(2,2,2)
@@ -331,6 +350,7 @@ xlabel('AP Axis','FontSize',20,'FontWeight','Bold')
 ylabel('Area under the curve','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
 set(gca,'xlim',[0.1,0.6])
+legend(UniqueTempLegend)
 
 %nc 14
 subplot(2,2,3)
@@ -345,6 +365,10 @@ xlabel('AP Axis','FontSize',20,'FontWeight','Bold')
 ylabel('Area under the curve','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
 set(gca,'xlim',[0.1,0.6])
+legend(UniqueTempLegend)
+
+
+
 
 %compare at a certain position
 figure(7)
@@ -381,6 +405,11 @@ xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Area under the curve','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
 
+
+
+
+
+%comparing transcription start time 
 %nc 12
 figure(8)
 hold on
@@ -411,7 +440,7 @@ xlabel('AP Axis','FontSize',24,'FontWeight','Bold')
 ylabel('Transcription start time(min)','FontSize',24,'FontWeight','Bold')
 legend(UniqueTempLegend)
 
-
+%nc 14
 figure(10)
 hold on
 for i0 = 1:size(MeanCompareStartTime{1},2)
@@ -425,6 +454,10 @@ set(gca,'xlim',[0.1,0.6])
 xlabel('AP Axis','FontSize',24,'FontWeight','Bold')
 ylabel('Transcription start time(min)','FontSize',24,'FontWeight','Bold')
 legend(UniqueTempLegend)
+
+
+
+
 
 %plot the fitted total mRNA produced during cycle 12 and 13
 figure(11)
@@ -458,6 +491,8 @@ set(gca,'xlim',[0.1,0.6])
 legend(UniqueTempLegend)
 
 
+
+
 %plot the ON time during each nc
 figure(12)
 %nc 12
@@ -489,6 +524,248 @@ set(gca,'xlim',[0.1,0.6])
 legend(UniqueTempLegend)
 
 
+
+
+%plot elongationr rate 
+figure(13)
+%nc 12
+subplot(2,2,1)
+hold on
+for i0 = 1:size(MeanCompareElongationRate{1},2)
+    errorbar(APAxis,MeanCompareElongationRate{1}(:,i0),StdCompareElongationRate{1}(:,i0))
+end
+hold off
+title('nc 12','FontSize',20)
+xlabel('AP Axis','FontSize',16,'FontWeight','Bold')
+ylabel('Estimated elongation rate','FontSize',16,'FontWeight','Bold')
+set(gca,'FontSize',16,'FontWeight','Bold')
+set(gca,'xlim',[0.1,0.6])
+legend(UniqueTempLegend)
+
+%nc 13
+subplot(2,2,2)
+hold on
+for i0 = 1:size(MeanCompareElongationRate{2},2)
+    errorbar(APAxis,MeanCompareElongationRate{2}(:,i0),StdCompareElongationRate{2}(:,i0))
+end
+hold off
+title('nc 13','FontSize',20)
+xlabel('AP Axis','FontSize',16,'FontWeight','Bold')
+ylabel('Estimated elongation rate','FontSize',16,'FontWeight','Bold')
+set(gca,'FontSize',16,'FontWeight','Bold')
+set(gca,'xlim',[0.1,0.6])
+legend(UniqueTempLegend)
+
+%nc 14
+subplot(2,2,3)
+hold on
+for i0 = 1:size(MeanCompareElongationRate{3},2)
+    errorbar(APAxis,MeanCompareElongationRate{3}(:,i0),StdCompareElongationRate{3}(:,i0))
+end
+hold off
+title('nc 14','FontSize',20)
+xlabel('AP Axis','FontSize',16,'FontWeight','Bold')
+ylabel('Estimated elongation rate','FontSize',16,'FontWeight','Bold')
+set(gca,'FontSize',16,'FontWeight','Bold')
+set(gca,'xlim',[0.1,0.6])
+legend(UniqueTempLegend)
+
+
+
+
+%plot Off rate
+figure(14)
+%nc 12
+subplot(1,2,1)
+hold on
+for i0 = 1:size(MeanCompareOffRate{1},2)
+    errorbar(APAxis,abs(MeanCompareOffRate{1}(:,i0)),StdCompareOffRate{1}(:,i0))
+end
+hold off
+title('nc 12','FontSize',20)
+xlabel('AP Axis','FontSize',16,'FontWeight','Bold')
+ylabel('Off rate(a.u)','FontSize',16,'FontWeight','Bold')
+set(gca,'FontSize',16,'FontWeight','Bold')
+set(gca,'xlim',[0.1,0.6])
+legend(UniqueTempLegend)
+
+%nc 13
+subplot(1,2,2)
+hold on
+for i0 = 1:size(MeanCompareOffRate{2},2)
+    errorbar(APAxis,abs(MeanCompareOffRate{2}(:,i0)),StdCompareOffRate{2}(:,i0))
+end
+hold off
+title('nc 13','FontSize',20)
+xlabel('AP Axis','FontSize',20,'FontWeight','Bold')
+ylabel('Off rate','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+set(gca,'xlim',[0.1,0.6])
+legend(UniqueTempLegend)
+
+
+
+
+%scatter plot of On rate and off rate
+figure(15)
+%nc 12
+subplot(1,2,1)
+hold on
+for i0 = 1:size(compareOffRate{1},2)
+    plot(compareLoadingRate{1}(:,i0),abs(compareOffRate{1}(:,i0)),'o','MarkerSize',10)
+end
+hold on
+title('nc 12','FontSize',20)
+xlabel('RNAP loading rate (a.u)','FontSize',20,'FontWeight','Bold')
+ylabel('Off rate','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 12
+subplot(1,2,2)
+hold on
+for i0 = 1:size(compareOffRate{2},2)
+    plot(compareLoadingRate{2}(:,i0),abs(compareOffRate{2}(:,i0)),'o','MarkerSize',10)
+end
+hold on
+title('nc 13','FontSize',20)
+xlabel('RNAP loading rate (a.u)','FontSize',20,'FontWeight','Bold')
+ylabel('Off rate','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+
+
+
+%scatter plot of start time and off time
+figure(16)
+%nc 12
+subplot(1,2,1)
+hold on
+for i0 = 1:size(compareStartTime{1},2)
+    plot(compareStartTime{1}(:,i0),compareStartTime{1}(:,i0)+compareOnTime{1}(:,i0),'o','MarkerSize',10)
+end
+hold on
+title('nc 12','FontSize',20)
+xlabel('Transcription start time','FontSize',20,'FontWeight','Bold')
+ylabel('Transcription end time','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 13
+subplot(1,2,2)
+hold on
+for i0 = 1:size(compareStartTime{2},2)
+    plot(compareStartTime{2}(:,i0),compareStartTime{2}(:,i0)+compareOnTime{2}(:,i0),'o','MarkerSize',10)
+end
+hold on
+title('nc 13','FontSize',20)
+xlabel('Transcription start time','FontSize',20,'FontWeight','Bold')
+ylabel('Transcription end time()','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+
+
+
+%mean loading rate over AP
+figure(17)
+%nc 12
+subplot(2,2,1)
+errorbar(UniqueEstiTemp',SummaryLoadingRate{1}(:,1),SummaryLoadingRate{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 12','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 13
+subplot(2,2,2)
+errorbar(UniqueEstiTemp',SummaryLoadingRate{2}(:,1),SummaryLoadingRate{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 13','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 14
+subplot(2,2,3)
+errorbar(UniqueEstiTemp',SummaryLoadingRate{3}(:,1),SummaryLoadingRate{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 14','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+
+
+%plot the overall elongation rate, sum over AP 
+figure(18)
+%nc 12
+subplot(2,2,1)
+errorbar(UniqueEstiTemp',SummaryElongationRate{1}(:,1),SummaryElongationRate{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 12','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Elongation rate of RNAP (kb/min)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 13
+subplot(2,2,2)
+errorbar(UniqueEstiTemp',SummaryElongationRate{2}(:,1),SummaryElongationRate{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 13','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Elongation rate of RNAP (kb/min)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 14
+subplot(2,2,3)
+errorbar(UniqueEstiTemp',SummaryElongationRate{3}(:,1),SummaryElongationRate{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 14','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Elongation rate of RNAP (kb/min)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+
+
+
+%plot overall start time
+%nc 12
+subplot(2,2,1)
+errorbar(UniqueEstiTemp',SummaryStartTime{1}(:,1),SummaryStartTime{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 12','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Transcription initiation time(min)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 13
+subplot(2,2,2)
+errorbar(UniqueEstiTemp',SummaryStartTime{2}(:,1),SummaryStartTime{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 13','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Transcription initiation time(min)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 14
+subplot(2,2,3)
+errorbar(UniqueEstiTemp',SummaryStartTime{3}(:,1),SummaryStartTime{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 14','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Transcription initiation time(min)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+
+
+
+
+%plot overall On time
+%nc 12
+subplot(1,2,1)
+errorbar(UniqueEstiTemp',SummaryOnTime{1}(:,1),SummaryOnTime{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 12','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Duration of On state(min)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 13
+subplot(1,2,2)
+errorbar(UniqueEstiTemp',SummaryOnTime{2}(:,1),SummaryOnTime{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 13','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Duration of On state(min)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
 
 
 %save all the data extract for future plot
