@@ -210,7 +210,7 @@ CurrentNC=12;
 i=min(find(sum(NParticlesAP)));
 cc=1;
 
-while (cc~=13)
+while (cc~=13)  %13 is the ENTER button
     
     figure(FitFigure)
     clf

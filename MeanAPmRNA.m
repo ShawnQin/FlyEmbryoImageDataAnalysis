@@ -110,8 +110,8 @@ FrameWindow14=[nc14:length(ElapsedTime)];
 %dissaproved the ones that did not have enough data points. Fit results has
 %is a structure with the fits corresponding to each AP position and nc13
 %or nc14
-if exist([DropboxFolder,filesep,Prefix,filesep,'MeanFitsV2.mat'])
-    load([DropboxFolder,filesep,Prefix,filesep,'MeanFitsV2.mat']);
+if exist([DropboxFolder,filesep,Prefix,filesep,'MeanmRNA.mat'])
+    load([DropboxFolder,filesep,Prefix,filesep,'MeanmRNA.mat']);
     if isempty(FitResults)
         FitResults(length(APbinID),3).Rate0=[];
     end
@@ -492,8 +492,12 @@ while (cc~=13)
     elseif (ct~=0)&(cc=='l')
         if ~isempty(find(~ismember(FrameWindow(FrameFilter),FitResults(i,CurrentNC-11).FitFrameRange)))
             FilteredFramesTemp=FrameWindow(FrameFilter);
-            FitResults(i,CurrentNC-11).FitFrameRange(end+1)=...
-                FilteredFramesTemp(min(find(~ismember(FilteredFramesTemp,FitResults(i,CurrentNC-11).FitFrameRange))));
+            FilterNotPrent = find(~ismember(FilteredFramesTemp,FitResults(i,CurrentNC-11).FitFrameRange));
+            SmallestLargerInx = min(find(FilteredFramesTemp(FilterNotPrent) > FitResults(i,CurrentNC-11).FitFrameRange(end)));
+            FitResults(i,CurrentNC-11).FitFrameRange(end+1)= FilteredFramesTemp(FilterNotPrent(SmallestLargerInx));
+            FilteredFramesTemp=FrameWindow(FrameFilter);
+%             FitResults(i,CurrentNC-11).FitFrameRange(end+1)=...
+%                 FilteredFramesTemp(min(find(~ismember(FilteredFramesTemp,FitResults(i,CurrentNC-11).FitFrameRange))));
         end
     %Move left range of fit
     elseif (ct~=0)&(cc=='j')&(length(FitResults(i,CurrentNC-11).FitFrameRange)>2)
@@ -501,9 +505,16 @@ while (cc~=13)
     elseif (ct~=0)&(cc=='h')
         if ~isempty(find(~ismember(FrameWindow(FrameFilter),FitResults(i,CurrentNC-11).FitFrameRange)))
             FilteredFramesTemp=FrameWindow(FrameFilter);
+%             FilteredFramesTemp=FrameWindow(FrameFilter);
+            FilterNotPrent = find(~ismember(FilteredFramesTemp,FitResults(i,CurrentNC-11).FitFrameRange));
+            LargestSmallerInx = max(find(FilteredFramesTemp(FilterNotPrent) < FitResults(i,CurrentNC-11).FitFrameRange(1)));
+%             FitResults(i,CurrentNC-11).FitFrameRange(end+1)= FilteredFramesTemp(FilterNotPrent(LargestSmallerInx));
             FitResults(i,CurrentNC-11).FitFrameRange=...
-                [FilteredFramesTemp(max(find(~ismember(FilteredFramesTemp,FitResults(i,CurrentNC-11).FitFrameRange)))),...
-                FitResults(i,CurrentNC-11).FitFrameRange];
+                [FilteredFramesTemp(FilterNotPrent(LargestSmallerInx)),FitResults(i,CurrentNC-11).FitFrameRange];
+%             FilteredFramesTemp=FrameWindow(FrameFilter);
+%             FitResults(i,CurrentNC-11).FitFrameRange=...
+%                 [FilteredFramesTemp(max(find(~ismember(FilteredFramesTemp,FitResults(i,CurrentNC-11).FitFrameRange)))),...
+%                 FitResults(i,CurrentNC-11).FitFrameRange];
         end
     %Reset frame fit range
      elseif (ct~=0)&(cc=='r')   

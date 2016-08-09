@@ -1,8 +1,9 @@
-%PROGRAM: CompareDivisionTime.m
-%DISCRIPTION: This program compare the division time along A-P axis
+%PROGRAM: CompareDivisionTimeMaxIntensity.m
+%DISCRIPTION: This program compare the division time along A-P axis as well as the
+%     maximum fluorescence intensity, which represent the spacing of RNAP on DNA
 %     load date from 'CompiledParticles.mat' and 'APDivision.mat'
 %     The exact duration of each nc is then calculated from the 'ElapsedTime.mat'
-%LAST REVISED: July 23,2016
+%LAST REVISED: Aug 7,2016
 
 close
 clear
@@ -14,11 +15,15 @@ Folder = '/Users/shan/Documents/MATLAB/LivemRNAFISH/Data';
 FolderTemp = uigetdir(Folder,'Choose folder with files to analyze');
 AllFolder = dir(FolderTemp);
 
+
 %temperature information of each of each data set
-[FileName, DataPath]= uigetfile(Folder,'Choose folder with files to analyze');
-DataInfoFile = fullfile(DataPath,FileName);
-[XLSnum,XLStex,XLSraw] = xlsread(DataInfoFile, 1, '', 'basic');
+DataInfoFile = fullfile(Folder,filesep,'DynamicsResults',filesep,'ResultsInfo.xlsx');
+[XLSnum,XLStext,XLSraw] = xlsread(DataInfoFile, 1, '', 'basic');
 AllDate = datenum(datetime(XLSnum(:,1),'ConvertFrom','excel1900'));
+% [FileName, DataPath]= uigetfile(Folder,'Choose folder with files to analyze');
+% DataInfoFile = fullfile(DataPath,FileName);
+% [XLSnum,XLStex,XLSraw] = xlsread(DataInfoFile, 1, '', 'basic');
+% AllDate = datenum(datetime(XLSnum(:,1),'ConvertFrom','excel1900'));
 
 ncLength = [];
 Temperature = [];

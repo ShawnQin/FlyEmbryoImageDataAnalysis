@@ -20,25 +20,37 @@ DataInfoFile = fullfile(Folder,filesep,'DynamicsResults',filesep,'ResultsInfo.xl
 [XLSnum,XLStext,XLSraw] = xlsread(DataInfoFile, 1, '', 'basic');
 AllDate = datenum(datetime(XLSnum(:,1),'ConvertFrom','excel1900'));
 
-if ~isempty(varargin)
-    %selection type of data set, by default  it will load all the subfolder in chosen
-    %folder, use 'mid' to open only defined folders
-    if(strcmp(varargin{1},'mid'))
+% if ~isempty(varargin)
+%     %selection type of data set, by default  it will load all the subfolder in chosen
+%     %folder, use 'mid' to open only defined folders
+%     if(strcmp(varargin{1},'mid'))
+% 
+% %   this only consider the middle part of the embryo, we are trying to see the
+% %   expression boundary of Hb. Need to added the folder name each time you have new
+% %   data sets. This is a compromised way to do the job.
+%     FolderNames = {'2016-07-23-MCP-5-P2P','2016-07-24-MCP-5-P2P','2016-07-25-MCP-5-P2P','2016-07-26-MCP-5-P2P',...
+%         '2016-07-26-MCP-5-P2P','2016-07-27-MCP-5-P2P','2016-07-28-MCP-5-P2P'};
+%     
+%     elseif(strcmp(varargin{1},'anterior'))
+%     FolderNames = {'2016-07-02-MCP-5-P2P','2016-07-05-MCP-5-P2P','2016-07-07-MCP-5-P2P','2016-07-11-MCP-5-P2P',...
+%         '2016-07-12-MCP-5-P2P','2016-07-14-MCP-5-P2P','2016-07-17-MCP-5-P2P','2016-07-18-MCP-5-P2P','2016-08-01-MCP-5-P2P'};    
+%     end
+%     FolderTemp = [Folder,filesep,'DynamicsResults'];
+%     EffectiveDataSet = length(FolderNames);
+% else
+%     
+% %load the data for analysis
+% FolderTemp = uigetdir(Folder,'Choose folder with files to analyze');
+% AllFolder = dir(FolderTemp);
+% [uniqueC,~,idx] = unique(XLStext(:,4));
+% counts = accumarray(idx(:),1,[],@sum);
+% EffectiveDataSet = max(counts);  %this is the number of useful data sets
+% 
+% for j0 = 1:length(AllFolder) 
+%     FolderNames{j0} = AllFolder(j0).name;
+% end 
+% end
 
-%   this only consider the middle part of the embryo, we are trying to see the
-%   expression boundary of Hb. Need to added the folder name each time you have new
-%   data sets. This is a compromised way to do the job.
-    FolderNames = {'2016-07-23-MCP-5-P2P','2016-07-24-MCP-5-P2P','2016-07-25-MCP-5-P2P','2016-07-26-MCP-5-P2P',...
-        '2016-07-26-MCP-5-P2P','2016-07-27-MCP-5-P2P','2016-07-28-MCP-5-P2P'};
-    
-    elseif(strcmp(varargin{1},'anterior'))
-    FolderNames = {'2016-07-02-MCP-5-P2P','2016-07-05-MCP-5-P2P','2016-07-07-MCP-5-P2P','2016-07-11-MCP-5-P2P',...
-        '2016-07-12-MCP-5-P2P','2016-07-14-MCP-5-P2P','2016-07-17-MCP-5-P2P','2016-07-18-MCP-5-P2P'};    
-    end
-    FolderTemp = [Folder,filesep,'DynamicsResults'];
-    EffectiveDataSet = length(FolderNames);
-else
-    
 %load the data for analysis
 FolderTemp = uigetdir(Folder,'Choose folder with files to analyze');
 AllFolder = dir(FolderTemp);
@@ -49,7 +61,6 @@ EffectiveDataSet = max(counts);  %this is the number of useful data sets
 for j0 = 1:length(AllFolder) 
     FolderNames{j0} = AllFolder(j0).name;
 end 
-end
 
 %information file of each data set
 %load the data 
@@ -195,42 +206,50 @@ SummaryElongationRate = cell(3,1);
 SummaryStartTime = cell(3,1);
 SummaryOnTime = cell(3,1);
 
+if(strcmp(varargin{1},'mid'))
+    SelectedInx = 15:41;
+elseif(strcmp(varargin{1},'anterior'))
+    SelectedInx = 1:16;  
+else
+    SelectedInx = 1:41;  %all the AP 
+end
+
 for i0 = 1:length(UniqueTemperature);
     SameTempInx = find(Temperature==UniqueTemperature(i0));
     for j0=1:3;
 %         nanmean(compareLoadingRate{j0}(:,SameTempInx),2)
-        MeanCompareLoadingRate{j0}(:,i0) = nanmean(compareLoadingRate{j0}(:,SameTempInx),2);
-        StdCompareLoadingRate{j0}(:,i0) = nanstd(compareLoadingRate{j0}(:,SameTempInx),0,2);
-        SummaryLoadingRate{j0}(i0,1) = nanmean(reshape(compareLoadingRate{j0}(:,SameTempInx),1,[]));
-        SummaryLoadingRate{j0}(i0,2) = nanstd(reshape(compareLoadingRate{j0}(:,SameTempInx),1,[]));
+        MeanCompareLoadingRate{j0}(:,i0) = nanmean(compareLoadingRate{j0}(SelectedInx,SameTempInx),2);
+        StdCompareLoadingRate{j0}(:,i0) = nanstd(compareLoadingRate{j0}(SelectedInx,SameTempInx),0,2);
+        SummaryLoadingRate{j0}(i0,1) = nanmean(reshape(compareLoadingRate{j0}(SelectedInx,SameTempInx),1,[]));
+        SummaryLoadingRate{j0}(i0,2) = nanstd(reshape(compareLoadingRate{j0}(SelectedInx,SameTempInx),1,[]));
         
-        MeanCompareStartTime{j0}(:,i0) = nanmean(compareStartTime{j0}(:,SameTempInx),2);
-        StdCompareStartTime{j0}(:,i0) = nanstd(compareStartTime{j0}(:,SameTempInx),0,2);
-        SummaryStartTime{j0}(i0,1) = nanmean(reshape(compareStartTime{j0}(:,SameTempInx),1,[]));
-        SummaryStartTime{j0}(i0,2) = nanstd(reshape(compareStartTime{j0}(:,SameTempInx),1,[]));
+        MeanCompareStartTime{j0}(:,i0) = nanmean(compareStartTime{j0}(SelectedInx,SameTempInx),2);
+        StdCompareStartTime{j0}(:,i0) = nanstd(compareStartTime{j0}(SelectedInx,SameTempInx),0,2);
+        SummaryStartTime{j0}(i0,1) = nanmean(reshape(compareStartTime{j0}(SelectedInx,SameTempInx),1,[]));
+        SummaryStartTime{j0}(i0,2) = nanstd(reshape(compareStartTime{j0}(SelectedInx,SameTempInx),1,[]));
        
-        MeanCompareTotalmRNA{j0}(:,i0) = nanmean(compareTotalmRNA{j0}(:,SameTempInx),2);
-        StdCompareTotalmRNA{j0}(:,i0) = nanstd(compareTotalmRNA{j0}(:,SameTempInx),0,2);
+        MeanCompareTotalmRNA{j0}(:,i0) = nanmean(compareTotalmRNA{j0}(SelectedInx,SameTempInx),2);
+        StdCompareTotalmRNA{j0}(:,i0) = nanstd(compareTotalmRNA{j0}(SelectedInx,SameTempInx),0,2);
         
-        MeanCompareElongationRate{j0}(:,i0) = nanmean(compareElongationRate{j0}(:,SameTempInx),2);
-        StdCompareElongationRate{j0}(:,i0) = nanstd(compareElongationRate{j0}(:,SameTempInx),0,2);
-        SummaryElongationRate{j0}(i0,1) = nanmean(reshape(compareElongationRate{j0}(:,SameTempInx),1,[]));
-        SummaryElongationRate{j0}(i0,2) = nanstd(reshape(compareElongationRate{j0}(:,SameTempInx),1,[]));
+        MeanCompareElongationRate{j0}(:,i0) = nanmean(compareElongationRate{j0}(SelectedInx,SameTempInx),2);
+        StdCompareElongationRate{j0}(:,i0) = nanstd(compareElongationRate{j0}(SelectedInx,SameTempInx),0,2);
+        SummaryElongationRate{j0}(i0,1) = nanmean(reshape(compareElongationRate{j0}(SelectedInx,SameTempInx),1,[]));
+        SummaryElongationRate{j0}(i0,2) = nanstd(reshape(compareElongationRate{j0}(SelectedInx,SameTempInx),1,[]));
 %     MeanCompareLoadingRate{j0}(:,i0) = compareLoadingRate{j0}(:,SameTempInx);
 %     MeanCompareTotalmRNA{j0}(:,i0)  = compareTotalmRNA{j0}(:,compareTotalmRNA);
     end
     
     for k0 = 1:2
-        MeanCompareFitTotalmRNA{k0}(:,i0) = nanmean(compareFitTotalmRNA{k0}(:,SameTempInx),2);
-        StdCompareFitTotalmRNA{k0}(:,i0) = nanstd(compareFitTotalmRNA{k0}(:,SameTempInx),0,2);
+        MeanCompareFitTotalmRNA{k0}(:,i0) = nanmean(compareFitTotalmRNA{k0}(SelectedInx,SameTempInx),2);
+        StdCompareFitTotalmRNA{k0}(:,i0) = nanstd(compareFitTotalmRNA{k0}(SelectedInx,SameTempInx),0,2);
         
-        MeanCompareOnTime{k0}(:,i0) = nanmean(compareOnTime{k0}(:,SameTempInx),2);
-        StdCompareOnTime{k0}(:,i0) = nanstd(compareOnTime{k0}(:,SameTempInx),0,2);
-        SummaryOnTime{k0}(i0,1) = nanmean(reshape(compareOnTime{k0}(:,SameTempInx),1,[]));
-        SummaryOnTime{k0}(i0,2) = nanstd(reshape(compareOnTime{k0}(:,SameTempInx),1,[]));
+        MeanCompareOnTime{k0}(:,i0) = nanmean(compareOnTime{k0}(SelectedInx,SameTempInx),2);
+        StdCompareOnTime{k0}(:,i0) = nanstd(compareOnTime{k0}(SelectedInx,SameTempInx),0,2);
+        SummaryOnTime{k0}(i0,1) = nanmean(reshape(compareOnTime{k0}(SelectedInx,SameTempInx),1,[]));
+        SummaryOnTime{k0}(i0,2) = nanstd(reshape(compareOnTime{k0}(SelectedInx,SameTempInx),1,[]));
         
-        MeanCompareOffRate{k0}(:,i0) = nanmean(compareOffRate{k0}(:,SameTempInx),2);
-        StdCompareOffRate{k0}(:,i0) = nanstd(compareOffRate{k0}(:,SameTempInx),0,2);
+        MeanCompareOffRate{k0}(:,i0) = nanmean(compareOffRate{k0}(SelectedInx,SameTempInx),2);
+        StdCompareOffRate{k0}(:,i0) = nanstd(compareOffRate{k0}(SelectedInx,SameTempInx),0,2);
     end
 
 end
@@ -242,6 +261,7 @@ hold on
 %cycle 12
 % subplot(2,2,1)
 APAxis = (0:1:40)'*0.025;
+APAxis = (SelectedInx*0.025)';
 % plot(APAxis,compareLoadingRate{1},'o-','MarkerSize',10,'LineWidth',2)
 for i0 = 1:size(MeanCompareLoadingRate{1},2)
     errorbar(APAxis,MeanCompareLoadingRate{1}(:,i0),StdCompareLoadingRate{1}(:,i0),'o-','MarkerSize',10,'LineWidth',2)
@@ -667,15 +687,16 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 %mean loading rate over AP
 figure(17)
 %nc 12
-subplot(2,2,1)
+% subplot(2,2,1)
 errorbar(UniqueEstiTemp',SummaryLoadingRate{1}(:,1),SummaryLoadingRate{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 12','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
+hold on
 
 %nc 13
-subplot(2,2,2)
+% subplot(2,2,2)
 errorbar(UniqueEstiTemp',SummaryLoadingRate{2}(:,1),SummaryLoadingRate{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 13','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
@@ -683,27 +704,30 @@ ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
 
 %nc 14
-subplot(2,2,3)
+% subplot(2,2,3)
 errorbar(UniqueEstiTemp',SummaryLoadingRate{3}(:,1),SummaryLoadingRate{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 14','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
+legend('nc 12','nc 13','nc 14')
+hold off
 
 
 
 %plot the overall elongation rate, sum over AP 
 figure(18)
 %nc 12
-subplot(2,2,1)
+% subplot(2,2,1)
 errorbar(UniqueEstiTemp',SummaryElongationRate{1}(:,1),SummaryElongationRate{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 12','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Elongation rate of RNAP (kb/min)','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
+hold on
 
 %nc 13
-subplot(2,2,2)
+% subplot(2,2,2)
 errorbar(UniqueEstiTemp',SummaryElongationRate{2}(:,1),SummaryElongationRate{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 13','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
@@ -711,17 +735,20 @@ ylabel('Elongation rate of RNAP (kb/min)','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
 
 %nc 14
-subplot(2,2,3)
+% subplot(2,2,3)
 errorbar(UniqueEstiTemp',SummaryElongationRate{3}(:,1),SummaryElongationRate{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 14','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Elongation rate of RNAP (kb/min)','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
+legend('nc 12','nc 13','nc 14')
+hold off
 
 
 
 
 %plot overall start time
+figure(19)
 %nc 12
 subplot(2,2,1)
 errorbar(UniqueEstiTemp',SummaryStartTime{1}(:,1),SummaryStartTime{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
@@ -751,26 +778,28 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 
 
 %plot overall On time
+figure(20)
 %nc 12
-subplot(1,2,1)
+% subplot(1,2,1)
 errorbar(UniqueEstiTemp',SummaryOnTime{1}(:,1),SummaryOnTime{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 12','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Duration of On state(min)','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
+hold on
 
 %nc 13
-subplot(1,2,2)
+% subplot(1,2,2)
 errorbar(UniqueEstiTemp',SummaryOnTime{2}(:,1),SummaryOnTime{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 13','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Duration of On state(min)','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
-
+hold off
 
 %save all the data extract for future plot
-FoderSaveData = '/Users/shan/Documents/MATLAB/LivemRNAFISH/FinalDataAndFigure';
-save([FoderSaveData,filesep,'AllCompRates.mat'],'compareLoadingRate',...
-    'compareLoadingRate','compareOffRate','compareOffRate','MeanCompareLoadingRate',...
-    'StdCompareLoadingRate','MeanCompareStartTime','StdCompareStartTime','MeanCompareTotalmRNA',...
-    'StdCompareTotalmRNA')
+% FoderSaveData = '/Users/shan/Documents/MATLAB/LivemRNAFISH/FinalDataAndFigure';
+% save([FoderSaveData,filesep,'AllCompRates.mat'],'compareLoadingRate',...
+%     'compareLoadingRate','compareOffRate','compareOffRate','MeanCompareLoadingRate',...
+%     'StdCompareLoadingRate','MeanCompareStartTime','StdCompareStartTime','MeanCompareTotalmRNA',...
+%     'StdCompareTotalmRNA')
