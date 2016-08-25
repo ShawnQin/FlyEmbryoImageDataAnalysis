@@ -69,6 +69,30 @@ for i0 = 1:length(UniqueTemperature);
     StdNCLength(i0,:) = nanstd(ncLength(SameTempInx,:),1);
 end
 
+%proportion of each nc length
+TotLength = sum(ncLength,2);
+StdLen = [];
+MeanLen = nanmean(ncLength,1);
+for i0 = 1:3;
+    RatioTime(:,i0) = ncLength(~isnan(TotLength),i0)./TotLength(~isnan(TotLength));
+    StdLen = [StdLen,nanstd(ncLength(:,i0))];
+end
+Proportion = cumsum(RatioTime,2);
+TemperatureThreeNC = Temperature(~isnan(TotLength));
+
+%random generize the number with the same statistics of ncLength
+NumRand = 12;
+RandLength = zeros(NumRand,3);
+for i0 = 1:3
+    RandLength(:,i0) = normrnd(MeanLen(i0),StdLen(i0),NumRand,1);
+end
+
+RandRaio = cumsum(RandLength,2);
+for i0 = 1:3
+    RandGenerateProportion(:,i0) = RandRaio(:,i0)./sum(RandLength,2);
+end
+
+
 %plot the nc length as a function of temperature
 %cycle 13
 figure(1)
@@ -89,3 +113,60 @@ set(gca,'FontSize',24,'FontWeight','Bold')
 xlabel(['Temperature ','(',sprintf('%c', char(176)),'C)'],'FontSize',24,'FontWeight','Bold')
 ylabel('Nuclei Cycle Length(min)','FontSize',24,'FontWeight','Bold')
 % legend(UniqueTempLegend)
+
+
+
+%scatter length nc 12 and 13
+figure(3)
+subplot(1,2,1)
+hold on
+plot(ncLength(:,1),ncLength(:,2),'o','MarkerSize',12,'LineWidth',2)
+plot(RandLength(:,1),RandLength(:,2),'o','MarkerSize',12,'LineWidth',2)
+hold off
+xlabel('nc lenght of 12 (min)','FontSize',24,'FontWeight','Bold')
+ylabel('nc length of 13 (min)','FontSize',24,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+legend('experiment','random')
+
+subplot(1,2,2)
+hold on
+plot(ncLength(:,2),ncLength(:,3),'o','MarkerSize',12,'LineWidth',2)
+plot(RandLength(:,2),RandLength(:,3),'o','MarkerSize',12,'LineWidth',2)
+hold off
+xlabel('nc lenght of 13 (min)','FontSize',24,'FontWeight','Bold')
+ylabel('nc length of 14 (min)','FontSize',24,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+legend('experiment','random')
+
+
+
+
+%test the proportion of each nc length
+figure(4)
+hold on
+for i0 = 1:length(TemperatureThreeNC);
+    plot(Proportion(i0,:),ones(1,3)*TemperatureThreeNC(i0),'o','MarkerSize',12,'LineWidth',2)
+end
+hold off
+xlabel('Proportion of last three cycles lengths','FontSize',24,'FontWeight','Bold')
+ylabel(['Temperature ','(',sprintf('%c', char(176)),'C)'],'FontSize',24,'FontWeight','Bold')
+set(gca,'FontSize',24,'FontWeight','Bold')
+
+
+%generated random data
+figure(6)
+hold on 
+for i0  = 1:NumRand
+    plot(RandGenerateProportion(i0,:),ones(1,3)*i0,'o','MarkerSize',12,'LineWidth',2)
+end
+hold off
+xlabel('Proportion of last three cycles lengths','FontSize',24,'FontWeight','Bold')
+ylabel(['Temperature ','(',sprintf('%c', char(176)),'C)'],'FontSize',24,'FontWeight','Bold')
+set(gca,'FontSize',24,'FontWeight','Bold')
+
+
+
+
+
+
+

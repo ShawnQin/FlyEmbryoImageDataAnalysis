@@ -202,6 +202,7 @@ MeanCompareOnTime = cell(2,1);   %fitted ON time during nc 12 and 13
 StdCompareOnTime = cell(2,1); 
 
 SummaryLoadingRate = cell(3,1);
+SummarymRNA = cell(3,1);
 SummaryElongationRate = cell(3,1);
 SummaryStartTime = cell(3,1);
 SummaryOnTime = cell(3,1);
@@ -232,6 +233,8 @@ for i0 = 1:length(UniqueTemperature);
        
         MeanCompareTotalmRNA{j0}(:,i0) = nanmean(compareTotalmRNA{j0}(SelectedInx,SameTempInx),2);
         StdCompareTotalmRNA{j0}(:,i0) = nanstd(compareTotalmRNA{j0}(SelectedInx,SameTempInx),0,2);
+        SummarymRNA{j0}(i0,1) = nanmean(reshape(compareTotalmRNA{j0}(SelectedInx,SameTempInx),1,[]));
+        SummarymRNA{j0}(i0,2) = nanstd(reshape(compareTotalmRNA{j0}(SelectedInx,SameTempInx),1,[]));
         
         MeanCompareElongationRate{j0}(:,i0) = nanmean(compareElongationRate{j0}(SelectedInx,SameTempInx),2);
         StdCompareElongationRate{j0}(:,i0) = nanstd(compareElongationRate{j0}(SelectedInx,SameTempInx),0,2);
@@ -798,6 +801,36 @@ xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Duration of On state(min)','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
 hold off
+
+
+
+
+
+%plot the mean overall mRNA accumulated during each NC
+figure(21)
+%nc 12
+subplot(2,2,1)
+errorbar(UniqueEstiTemp',SummarymRNA{1}(:,1),SummarymRNA{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 12','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Mean mRNA acculumation(a.u)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 13
+subplot(2,2,2)
+errorbar(UniqueEstiTemp',SummarymRNA{2}(:,1),SummarymRNA{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 13','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Mean mRNA acculumation(a.u)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+
+%nc 14
+subplot(2,2,3)
+errorbar(UniqueEstiTemp',SummarymRNA{3}(:,1),SummarymRNA{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+title('nc 14','FontSize',20)
+xlabel('Temperature','FontSize',20,'FontWeight','Bold')
+ylabel('Mean mRNA acculumation(a.u)','FontSize',20,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
 
 %save all the data extract for future plot
 % FoderSaveData = '/Users/shan/Documents/MATLAB/LivemRNAFISH/FinalDataAndFigure';
