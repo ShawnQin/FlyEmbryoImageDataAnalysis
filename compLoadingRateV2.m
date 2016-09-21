@@ -1,90 +1,45 @@
-%*************************************2*********************
-%PROGRAM: compLoadingRate.m
-%DISCRIPTION:
-%       This program read the data of loading rates under different temperature
-%       and comparing temperature dependent.
-%       We specify the A-P position, which is 0.025 of the whole embryos in length
-%       The method used to estimate cummulated mRNA has revised, the area under the
-%       curve is not the correct way to do
-%LAST REVISED: August 5,2016
 %**********************************************************
-function compLoadingRate(varargin)
+%PROGRAM: compLoadingRateV2.m
+%DISCRIPTION:
+%       Tis program is a simplified version of "compLoadingRate.m", which simply
+%       read a list of interested data set, the temperature of each data set has
+%       alread specified in "NewControlDataInfo.xlsx'
+%       This is used to compare loading rate of new data sets
+%LAST REVISED: September 5th,2016
+%**********************************************************
+function compLoadingRateV2(varargin)
 
 close all
 
 
 %primary folder of the data
-Folder = '/Users/shan/Documents/MATLAB/LivemRNAFISH/Data';
+Folder = '/Users/shan/Documents/MATLAB/LivemRNAFISH/Data/DynamicsResults';
 
-DataInfoFile = fullfile(Folder,filesep,'DynamicsResults',filesep,'ResultsInfo.xlsx');
-[XLSnum,XLStext,XLSraw] = xlsread(DataInfoFile, 1, '', 'basic');
-AllDate = datenum(datetime(XLSnum(:,1),'ConvertFrom','excel1900'));
-
-% if ~isempty(varargin)
-%     %selection type of data set, by default  it will load all the subfolder in chosen
-%     %folder, use 'mid' to open only defined folders
-%     if(strcmp(varargin{1},'mid'))
-% 
-% %   this only consider the middle part of the embryo, we are trying to see the
-% %   expression boundary of Hb. Need to added the folder name each time you have new
-% %   data sets. This is a compromised way to do the job.
-%     FolderNames = {'2016-07-23-MCP-5-P2P','2016-07-24-MCP-5-P2P','2016-07-25-MCP-5-P2P','2016-07-26-MCP-5-P2P',...
-%         '2016-07-26-MCP-5-P2P','2016-07-27-MCP-5-P2P','2016-07-28-MCP-5-P2P'};
-%     
-%     elseif(strcmp(varargin{1},'anterior'))
-%     FolderNames = {'2016-07-02-MCP-5-P2P','2016-07-05-MCP-5-P2P','2016-07-07-MCP-5-P2P','2016-07-11-MCP-5-P2P',...
-%         '2016-07-12-MCP-5-P2P','2016-07-14-MCP-5-P2P','2016-07-17-MCP-5-P2P','2016-07-18-MCP-5-P2P','2016-08-01-MCP-5-P2P'};    
-%     end
-%     FolderTemp = [Folder,filesep,'DynamicsResults'];
-%     EffectiveDataSet = length(FolderNames);
-% else
-%     
-% %load the data for analysis
-% FolderTemp = uigetdir(Folder,'Choose folder with files to analyze');
-% AllFolder = dir(FolderTemp);
-% [uniqueC,~,idx] = unique(XLStext(:,4));
-% counts = accumarray(idx(:),1,[],@sum);
-% EffectiveDataSet = max(counts);  %this is the number of useful data sets
-% 
-% for j0 = 1:length(AllFolder) 
-%     FolderNames{j0} = AllFolder(j0).name;
-% end 
-% end
-
-%load the data for analysis
-FolderTemp = uigetdir(Folder,'Choose folder with files to analyze');
-AllFolder = dir(FolderTemp);
-[uniqueC,~,idx] = unique(XLStext(:,4));
-counts = accumarray(idx(:),1,[],@sum);
-EffectiveDataSet = max(counts);  %this is the number of useful data sets
-
-for j0 = 1:length(AllFolder) 
-    FolderNames{j0} = AllFolder(j0).name;
-end 
-
-%information file of each data set
-%load the data 
-% Folder = '/Users/shan/Documents/GoogleDrive/HernanLab/dataAndFigure';
-% [FileName, DataPath]= uigetfile(Folder,'Choose folder with files to analyze');
+%basic information of data sets
+DataInfoFile = fullfile(Folder,filesep,'NewControlDataInfo.xlsx');
+[XLSnum,XLStext,XLSraw] = xlsread(DataInfoFile, 2, '', 'basic');
+selectedInx = strcmp(XLStext(:,4),'yes');
+dataName = XLStext(selectedInx,1);
+EffectiveDataSet = length(dataName);
+for i0 = 1:length(dataName);
+    FolderNames{i0} = strrep(dataName{i0},'\','-');
+end
+% Temperature = unique(XLSnum);  %unique temperature  
 
 
-
-%loop through different temperatures
 compareLoadingRate = cell(3,1); %for different nuclei cycle
 compareStartTime = cell(3,1);  %transcription start time after mitois
-compareTotalmRNA = cell(3,1); %for different nuclei cycle
+compareTotalmRNA = cell(3,1);  %for different nuclei cycle
 compareElongationRate = cell(3,1); %estimated elongation rate for different nc 
-compareOnTime = cell(2,1); %estimated ON time during cycle 12 and 13
+compareOnTime = cell(2,1);    %estimated ON time during cycle 12 and 13
 compareOffRate = cell(2,1);   %no off rate of nuclei cycle 14
 compareFitTotalmRNA = cell(2,1);  %the total mRNA estimated are based on the fitted parameters
 
-TemperatureSet = [23,17,27,38,30,30,17,23,38];  %different number of temperature
-RealTempEstim = 10.6556 + 0.5651*TemperatureSet;
-diffTemperature = length(TemperatureSet);   %number of different temperatures tried
-
+% information about the construct
 MS2Length = 1336;
 LacZLength = 3960;
 alpha = MS2Length/LacZLength;
+
 %initialization
 for i1 = 1:3
     compareLoadingRate{i1} = NaN(41,EffectiveDataSet);
@@ -108,21 +63,13 @@ temperCount3 = 0;
 
 
 Temperature = []; %store all the real temperature for each date set
-for i0 = 1:length(FolderNames)
-    
-    if(isdir([FolderTemp,filesep,FolderNames{i0}]))
-        %comparing loading rate
-        if exist([FolderTemp,filesep,FolderNames{i0},[filesep,'MeanFitsLoadingElongationRate.mat']])
-            load([FolderTemp,filesep,FolderNames{i0},[filesep,'MeanFitsLoadingElongationRate.mat']]);
-            %find out the temperature of this data set
-            HypenPosition = find(FolderNames{i0}=='-');
-            dateString = FolderNames{i0}(1:HypenPosition(3)-1);
-            dateOfThisSet = datenum(dateString,'yyyy-mm-dd');
-            INX = find(AllDate==dateOfThisSet);
-            Temperature = [Temperature;XLSnum(INX,2)];
+for i0 = 1:EffectiveDataSet
+     
+        if exist([Folder,filesep,FolderNames{i0},[filesep,'MeanFitsLoadingElongationRate.mat']])
+            load([Folder,filesep,FolderNames{i0},[filesep,'MeanFitsLoadingElongationRate.mat']]);
+            Temperature = [Temperature;XLSnum(i0)];
             
             %initialize
-            
             %only consider those bins approved
             temperCount = temperCount + 1;
             [ROW,COL] = size(FitResults);
@@ -149,8 +96,8 @@ for i0 = 1:length(FolderNames)
                
         
         %comparing the total mRNA along AP axis
-        if exist([FolderTemp,filesep,FolderNames{i0},[filesep,'MeanmRNA.mat']])
-           load([FolderTemp,filesep,FolderNames{i0},[filesep,'MeanmRNA.mat']]);
+        if exist([Folder,filesep,FolderNames{i0},[filesep,'MeanmRNA.mat']])
+           load([Folder,filesep,FolderNames{i0},[filesep,'MeanmRNA.mat']]);
            temperCount3 = temperCount3 +1;
             [ROW,COL] = size(FitResults);
             for j3 = 1:ROW
@@ -166,12 +113,7 @@ for i0 = 1:length(FolderNames)
                     end
                 end
             end
-        end
-               
-           
-    end 
-    
-    
+        end    
 end
 
 
@@ -179,11 +121,11 @@ end
 
 %legend
 [UniqueTemperature,IndexTemp,OrderTemp] =  unique(Temperature);
-UniqueEstiTemp = 10.6556 + 0.5651*UniqueTemperature;
-UniqueTempLegend = [];
+UniqueTempLegend = cell(length(UniqueTemperature),1);
 for i0 = 1:length(UniqueTemperature);
-    UniqueTempLegend = [UniqueTempLegend;num2str(UniqueEstiTemp(i0))];
+    UniqueTempLegend{i0} = num2str(UniqueTemperature(i0));
 end
+
 % NumberRepeat = [UniqueTemperature(2:end),]
 MeanCompareLoadingRate = cell(3,1);
 StdCompareLoadingRate = cell(3,1);
@@ -263,11 +205,7 @@ end
 %loading rate under different temperature
 figure(1)
 hold on
-%cycle 12
-% subplot(2,2,1)
-% APAxis = (0:1:40)'*0.025;
 APAxis = (SelectedInx*0.025)';
-% plot(APAxis,compareLoadingRate{1},'o-','MarkerSize',10,'LineWidth',2)
 for i0 = 1:size(MeanCompareLoadingRate{1},2)
     errorbar(APAxis,MeanCompareLoadingRate{1}(:,i0),StdCompareLoadingRate{1}(:,i0),'o-','MarkerSize',10,'LineWidth',2)
 end
@@ -320,31 +258,6 @@ legend(UniqueTempLegend)
 
 
 
-%plot the temperature dependent rate at a certain AP position
-APAxisSelect = input('Select a position(0~1):');
-whichBin = round(APAxisSelect/0.025);
-[TempOrder,Inx] = sort(RealTempEstim);
-
-figure(4)
-subplot(1,2,1)
-errorbar(UniqueEstiTemp',MeanCompareLoadingRate{2}(whichBin,:),StdCompareLoadingRate{2}(whichBin,:),...
-    'o','MarkerSize',8,'LineWidth',1)
-title('nc 13','FontSize',20)
-xlabel('Temperature','FontSize',20,'FontWeight','Bold')
-ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-
-subplot(1,2,2)
-% plot(TempOrder,compareLoadingRate{3}(whichBin,Inx),'o','MarkerSize',10,'LineWidth',2)
-errorbar(UniqueEstiTemp',MeanCompareLoadingRate{3}(whichBin,:),StdCompareLoadingRate{3}(whichBin,:),...
-    'o','MarkerSize',8,'LineWidth',1)
-title('nc 14','FontSize',20)
-xlabel('Temperature','FontSize',20,'FontWeight','Bold')
-ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-
-
-
 
 %plot the total mRNA along AP Axis during different nc
 figure(6)
@@ -392,43 +305,6 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 set(gca,'xlim',[0.1,0.6])
 legend(UniqueTempLegend)
 
-
-
-
-%compare at a certain position
-figure(7)
-POSITION = input('Select a position(0~1):');
-P_inx = round(POSITION/0.025);
-
-%nc 12
-subplot(2,2,1)
-% plot(TempOrder,compareTotalmRNA{1}(P_inx,Inx),'o','MarkerSize',10,'LineWidth',2)
-errorbar(UniqueEstiTemp',MeanCompareTotalmRNA{1}(P_inx,:),StdCompareTotalmRNA{1}(P_inx,:),'o',...
-    'MarkerSize',10,'LineWidth',2)
-title('nc 12','FontSize',20)
-xlabel('Temperature','FontSize',20,'FontWeight','Bold')
-ylabel('Area under the curve','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-
-%nc 13
-subplot(2,2,2)
-% plot(TempOrder,compareTotalmRNA{2}(P_inx,Inx),'o','MarkerSize',10,'LineWidth',2)
-errorbar(UniqueEstiTemp',MeanCompareTotalmRNA{2}(P_inx,:),StdCompareTotalmRNA{2}(P_inx,:),'o',...
-    'MarkerSize',10,'LineWidth',2)
-title('nc 13','FontSize',20)
-xlabel('Temperature','FontSize',20,'FontWeight','Bold')
-ylabel('Area under the curve','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-
-%nc 14
-subplot(2,2,3)
-% plot(TempOrder,compareTotalmRNA{3}(P_inx,Inx),'o','MarkerSize',10,'LineWidth',2)
-errorbar(UniqueEstiTemp',MeanCompareTotalmRNA{3}(P_inx,:),StdCompareTotalmRNA{3}(P_inx,:),'o',...
-    'MarkerSize',10,'LineWidth',2)
-title('nc 14','FontSize',20)
-xlabel('Temperature','FontSize',20,'FontWeight','Bold')
-ylabel('Area under the curve','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
 
 
 
@@ -484,39 +360,6 @@ legend(UniqueTempLegend)
 
 
 
-%plot the fitted total mRNA produced during cycle 12 and 13
-figure(11)
-%nc 12
-subplot(1,2,1)
-hold on
-for i0 = 1:size(MeanCompareFitTotalmRNA{1},2)
-    errorbar(APAxis,MeanCompareFitTotalmRNA{1}(:,i0),StdCompareFitTotalmRNA{1}(:,i0))
-end
-hold off
-title('nc 12','FontSize',20)
-xlabel('AP Axis','FontSize',20,'FontWeight','Bold')
-ylabel('Estimated total mRNA (a.u)','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-set(gca,'xlim',[0.1,0.6])
-legend(UniqueTempLegend)
-
-%nc 13
-subplot(1,2,2)
-hold on
-for i0 = 1:size(MeanCompareFitTotalmRNA{2},2)
-    errorbar(APAxis,MeanCompareFitTotalmRNA{2}(:,i0),StdCompareFitTotalmRNA{1}(:,i0))
-end
-hold off
-legend()
-title('nc 13','FontSize',20)
-xlabel('AP Axis','FontSize',20,'FontWeight','Bold')
-ylabel('Estimated total mRNA (a.u)','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-set(gca,'xlim',[0.1,0.6])
-legend(UniqueTempLegend)
-
-
-
 
 %plot the ON time during each nc
 figure(12)
@@ -551,7 +394,7 @@ legend(UniqueTempLegend)
 
 
 
-%plot elongationr rate 
+%plot elongation rate 
 figure(13)
 %nc 12
 subplot(2,2,1)
@@ -631,69 +474,11 @@ legend(UniqueTempLegend)
 
 
 
-%scatter plot of On rate and off rate
-figure(15)
-%nc 12
-subplot(1,2,1)
-hold on
-for i0 = 1:size(compareOffRate{1},2)
-    plot(compareLoadingRate{1}(:,i0),abs(compareOffRate{1}(:,i0)),'o','MarkerSize',10)
-end
-hold on
-title('nc 12','FontSize',20)
-xlabel('RNAP loading rate (a.u)','FontSize',20,'FontWeight','Bold')
-ylabel('Off rate','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-
-%nc 12
-subplot(1,2,2)
-hold on
-for i0 = 1:size(compareOffRate{2},2)
-    plot(compareLoadingRate{2}(:,i0),abs(compareOffRate{2}(:,i0)),'o','MarkerSize',10)
-end
-hold on
-title('nc 13','FontSize',20)
-xlabel('RNAP loading rate (a.u)','FontSize',20,'FontWeight','Bold')
-ylabel('Off rate','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-
-
-
-
-%scatter plot of start time and off time
-figure(16)
-%nc 12
-subplot(1,2,1)
-hold on
-for i0 = 1:size(compareStartTime{1},2)
-    plot(compareStartTime{1}(:,i0),compareStartTime{1}(:,i0)+compareOnTime{1}(:,i0),'o','MarkerSize',10)
-end
-hold on
-title('nc 12','FontSize',20)
-xlabel('Transcription start time','FontSize',20,'FontWeight','Bold')
-ylabel('Transcription end time','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-
-%nc 13
-subplot(1,2,2)
-hold on
-for i0 = 1:size(compareStartTime{2},2)
-    plot(compareStartTime{2}(:,i0),compareStartTime{2}(:,i0)+compareOnTime{2}(:,i0),'o','MarkerSize',10)
-end
-hold on
-title('nc 13','FontSize',20)
-xlabel('Transcription start time','FontSize',20,'FontWeight','Bold')
-ylabel('Transcription end time()','FontSize',20,'FontWeight','Bold')
-set(gca,'FontSize',20,'FontWeight','Bold')
-
-
-
-
 %mean loading rate over AP
 figure(17)
 %nc 12
 % subplot(2,2,1)
-errorbar(UniqueEstiTemp',SummaryLoadingRate{1}(:,1),SummaryLoadingRate{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryLoadingRate{1}(:,1),SummaryLoadingRate{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 12','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
@@ -702,7 +487,7 @@ hold on
 
 %nc 13
 % subplot(2,2,2)
-errorbar(UniqueEstiTemp',SummaryLoadingRate{2}(:,1),SummaryLoadingRate{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryLoadingRate{2}(:,1),SummaryLoadingRate{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 13','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
@@ -710,7 +495,7 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 
 %nc 14
 % subplot(2,2,3)
-errorbar(UniqueEstiTemp',SummaryLoadingRate{3}(:,1),SummaryLoadingRate{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryLoadingRate{3}(:,1),SummaryLoadingRate{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 14','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Relative loading rate of RNAP','FontSize',20,'FontWeight','Bold')
@@ -724,7 +509,7 @@ hold off
 figure(18)
 %nc 12
 % subplot(2,2,1)
-errorbar(UniqueEstiTemp',SummaryElongationRate{1}(:,1),SummaryElongationRate{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryElongationRate{1}(:,1),SummaryElongationRate{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 12','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Elongation rate of RNAP (kb/min)','FontSize',20,'FontWeight','Bold')
@@ -733,7 +518,7 @@ hold on
 
 %nc 13
 % subplot(2,2,2)
-errorbar(UniqueEstiTemp',SummaryElongationRate{2}(:,1),SummaryElongationRate{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryElongationRate{2}(:,1),SummaryElongationRate{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 13','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Elongation rate of RNAP (kb/min)','FontSize',20,'FontWeight','Bold')
@@ -741,7 +526,7 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 
 %nc 14
 % subplot(2,2,3)
-errorbar(UniqueEstiTemp',SummaryElongationRate{3}(:,1),SummaryElongationRate{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryElongationRate{3}(:,1),SummaryElongationRate{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 14','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Elongation rate of RNAP (kb/min)','FontSize',20,'FontWeight','Bold')
@@ -756,7 +541,7 @@ hold off
 figure(19)
 %nc 12
 subplot(2,2,1)
-errorbar(UniqueEstiTemp',SummaryStartTime{1}(:,1),SummaryStartTime{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryStartTime{1}(:,1),SummaryStartTime{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 12','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Transcription initiation time(min)','FontSize',20,'FontWeight','Bold')
@@ -764,7 +549,7 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 
 %nc 13
 subplot(2,2,2)
-errorbar(UniqueEstiTemp',SummaryStartTime{2}(:,1),SummaryStartTime{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryStartTime{2}(:,1),SummaryStartTime{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 13','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Transcription initiation time(min)','FontSize',20,'FontWeight','Bold')
@@ -772,7 +557,7 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 
 %nc 14
 subplot(2,2,3)
-errorbar(UniqueEstiTemp',SummaryStartTime{3}(:,1),SummaryStartTime{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryStartTime{3}(:,1),SummaryStartTime{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 14','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Transcription initiation time(min)','FontSize',20,'FontWeight','Bold')
@@ -781,12 +566,11 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 
 
 
-
 %plot overall On time
 figure(20)
 %nc 12
 % subplot(1,2,1)
-errorbar(UniqueEstiTemp',SummaryOnTime{1}(:,1),SummaryOnTime{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryOnTime{1}(:,1),SummaryOnTime{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 12','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Duration of On state(min)','FontSize',20,'FontWeight','Bold')
@@ -795,7 +579,7 @@ hold on
 
 %nc 13
 % subplot(1,2,2)
-errorbar(UniqueEstiTemp',SummaryOnTime{2}(:,1),SummaryOnTime{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummaryOnTime{2}(:,1),SummaryOnTime{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 13','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Duration of On state(min)','FontSize',20,'FontWeight','Bold')
@@ -810,7 +594,7 @@ hold off
 figure(21)
 %nc 12
 subplot(2,2,1)
-errorbar(UniqueEstiTemp',SummarymRNA{1}(:,1),SummarymRNA{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummarymRNA{1}(:,1),SummarymRNA{1}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 12','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Mean mRNA acculumation(a.u)','FontSize',20,'FontWeight','Bold')
@@ -818,7 +602,7 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 
 %nc 13
 subplot(2,2,2)
-errorbar(UniqueEstiTemp',SummarymRNA{2}(:,1),SummarymRNA{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummarymRNA{2}(:,1),SummarymRNA{2}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 13','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Mean mRNA acculumation(a.u)','FontSize',20,'FontWeight','Bold')
@@ -826,15 +610,9 @@ set(gca,'FontSize',20,'FontWeight','Bold')
 
 %nc 14
 subplot(2,2,3)
-errorbar(UniqueEstiTemp',SummarymRNA{3}(:,1),SummarymRNA{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
+errorbar(UniqueTemperature',SummarymRNA{3}(:,1),SummarymRNA{3}(:,2),'o-','MarkerSize',15,'LineWidth',2)
 title('nc 14','FontSize',20)
 xlabel('Temperature','FontSize',20,'FontWeight','Bold')
 ylabel('Mean mRNA acculumation(a.u)','FontSize',20,'FontWeight','Bold')
 set(gca,'FontSize',20,'FontWeight','Bold')
 
-%save all the data extract for future plot
-% FoderSaveData = '/Users/shan/Documents/MATLAB/LivemRNAFISH/FinalDataAndFigure';
-% save([FoderSaveData,filesep,'AllCompRates.mat'],'compareLoadingRate',...
-%     'compareLoadingRate','compareOffRate','compareOffRate','MeanCompareLoadingRate',...
-%     'StdCompareLoadingRate','MeanCompareStartTime','StdCompareStartTime','MeanCompareTotalmRNA',...
-%     'StdCompareTotalmRNA')

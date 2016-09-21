@@ -102,8 +102,6 @@ else
 end
 FrameWindow13=[nc13:nc14];
 FrameWindow14=[nc14:length(ElapsedTime)];      
-
-
          
 
 %Set the first guess for the parameters for each AP bin and also
