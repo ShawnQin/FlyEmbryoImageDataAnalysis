@@ -11,31 +11,40 @@ function statisticsFigure(varargin)
 
 
 %load the data
-% Folder = '/Users/shan/Documents/MATLAB/LivemRNAFISH/Data/DynamicsResults';
-% for i = 1:2;  %compare two data set taken at same temperature
-% FolderTemp = uigetdir(Folder,'Choose folder with files to analyze');
-% if exist([FolderTemp,filesep,'CompiledParticles.mat'])
-%    load([FolderTemp,filesep,'CompiledParticles.mat']);
-% end
-% 
-% 
-% %plot the mean fluoresence as a function of time with error bar
-% figure(1)
-% % errorbar((1:length(MeanVectorAll))/3,MeanVectorAll,SDVectorAll)
-% hold on
+Folder = '/Users/shan/Documents/MATLAB/LivemRNAFISH/Data/DynamicsResults';
+FolderTemp = uigetdir(Folder,'Choose folder with files to analyze');
+if exist([FolderTemp,filesep,'CompiledParticles.mat'])
+   load([FolderTemp,filesep,'CompiledParticles.mat']);
+end
+
+
+%plot the mean fluoresence as a function of time with error bar
+figure(1)
+% errorbar((1:length(MeanVectorAll))/3,MeanVectorAll,SDVectorAll)
+hold on
 % plot((1:length(MeanVectorAll))/3,MeanVectorAll,'o-','MarkerSize',8,'LineWidth',2)
-% end
-% hold off
-% title('temperature 20.26','FontSize',24)
-% xlabel('time(min)','FontSize',24,'FontWeight','Bold')
-% ylabel('fluorescence(a.u)','FontSize',24,'FontWeight','Bold')
-% set(gca,'FontSize',20,'FontWeight','Bold')
-% 
-% 
-% 
-% %plot single particles
+
+ParticleNumber = length(CompiledParticles);
+for j = 1:ParticleNumber;
+    if CompiledParticles(j).nc==13
+    plot(ElapsedTime(CompiledParticles(j).Frame),CompiledParticles(j).Fluo,'color',[0.8 0.8 0.8])
+    end
+end
+
+plot(ElapsedTime,MeanVectorAll,'-','MarkerSize',8,'LineWidth',3)
+
+
+title('temperature 20.26','FontSize',24)
+xlabel('time(min)','FontSize',24,'FontWeight','Bold')
+ylabel('fluorescence(a.u)','FontSize',24,'FontWeight','Bold')
+set(gca,'FontSize',20,'FontWeight','Bold')
+hold off
+
+
+
+%plot single particles
 % totFrame = length(MeanVectorAll);
-% ParticleNumber = 101;
+% ParticleNumber = length(CompiledParticles);
 % allSingleFluo = cell(ParticleNumber,1);
 % frames = cell(ParticleNumber,1);
 % newSingleFluo = cell(ParticleNumber,1);
@@ -45,16 +54,12 @@ function statisticsFigure(varargin)
 %     newSingleFluo{i} = nan(1,totFrame);
 %     newSingleFluo{i}(frames{i})=allSingleFluo{i};
 % end
-% 
+% % 
 % %single particle profile
 % figure(2)
 % hold on
-% particleLable = []; %store the particles that last more than 100 frames
 % for j = 1:ParticleNumber;
-%     if(length(allSingleFluo{j})>=100)
-%         plot((1:totFrame)/6,newSingleFluo{j})
-%         particleLable = [particleLable;j];
-%     end
+%     plot(ElapsedTime(frames{j}),CompiledParticles(j).Fluo,'color',[0.8 0.8 0.8])
 % end
 % xlabel('time(min)','FontSize',24,'FontWeight','Bold')
 % ylabel('fluorecence(a.u)','FontSize',24,'FontWeight','Bold')

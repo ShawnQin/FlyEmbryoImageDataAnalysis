@@ -17,7 +17,7 @@ Folder = '/Users/shan/Documents/MATLAB/LivemRNAFISH/Data/DynamicsResults';
 
 %basic information of data sets
 DataInfoFile = fullfile(Folder,filesep,'NewControlDataInfo.xlsx');
-[XLSnum,XLStext,XLSraw] = xlsread(DataInfoFile, 2, '', 'basic');
+[XLSnum,XLStext,XLSraw] = xlsread(DataInfoFile, 1, '', 'basic');
 selectedInx = strcmp(XLStext(:,4),'yes');
 dataName = XLStext(selectedInx,1);
 EffectiveDataSet = length(dataName);
@@ -153,7 +153,7 @@ if ~isempty(varargin)
     if(strcmp(varargin{1},'mid'))
         SelectedInx = 15:41;
     elseif(strcmp(varargin{1},'anterior'))
-        SelectedInx = 1:16; 
+        SelectedInx = 5:16; 
     end
 else
     SelectedInx = 1:41;  %all the AP 

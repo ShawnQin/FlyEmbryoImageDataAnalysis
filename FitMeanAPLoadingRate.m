@@ -99,7 +99,14 @@ if nc12>0
 else
     FrameWindow12=[];
 end
-FrameWindow13=[nc13:nc14];
+
+%some data won't have the meitosis 12
+if nc13>0
+    FrameWindow13=[nc13:nc14];
+else
+    FrameWindow13 = (1:nc14);
+end
+% FrameWindow13=[nc13:nc14];
 FrameWindow14=[nc14:length(ElapsedTime)];      
 
 
